@@ -122,18 +122,28 @@ const Recording = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate('/')}
-          className="mb-6 text-rockman-blue hover:text-joust-blue flex items-center gap-2 font-body transition-colors"
-        >
-          ← Back
-        </button>
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Header: Back Button + Title on same line */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/')}
+              className="text-rockman-blue hover:text-joust-blue flex items-center gap-2 font-body transition-colors"
+            >
+              ← Back
+            </button>
+            <div className="flex items-center gap-3">
+              <div className="text-4xl">{config.icon}</div>
+              <h2 className="text-2xl font-heading font-bold text-charcoal">
+                {config.name[language]}
+              </h2>
+            </div>
+          </div>
+        </div>
 
         {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="bg-light-gray rounded-full h-3 overflow-hidden">
+        <div className="mb-6">
+          <div className="bg-light-gray rounded-full h-2 overflow-hidden">
             <div
               className={`h-full transition-all duration-500 ${getProgressColor()}`}
               style={{ width: `${progress}%` }}
@@ -141,146 +151,139 @@ const Recording = () => {
           </div>
         </div>
 
-        {/* Use Case Header */}
-        <div className="bg-off-white border border-light-gray rounded-audiogami shadow-sm p-6 mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="text-5xl">{config.icon}</div>
-            <div>
-              <h2 className="text-2xl font-heading font-bold text-charcoal">
-                {config.name[language]}
-              </h2>
-              <p className="font-body text-slate">{config.context[language]}</p>
-            </div>
-          </div>
-
-          {/* Questions */}
-          <div className="mt-6">
-            <h3 className="font-heading font-semibold text-charcoal mb-3">{t('questions')}</h3>
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column: Questions (compact) */}
+          <div className="bg-off-white border border-light-gray rounded-audiogami shadow-sm p-4">
+            <h3 className="font-heading font-semibold text-charcoal mb-3 text-lg">{t('questions')}</h3>
             <ol className="list-decimal list-inside space-y-2">
               {config.questions[language].map((question, idx) => (
-                <li key={idx} className="font-body text-slate">{question}</li>
+                <li key={idx} className="font-body text-slate text-sm" title={question}>
+                  {question}
+                </li>
               ))}
             </ol>
           </div>
-        </div>
 
-        {/* Recording Controls */}
-        <div className="bg-off-white border border-light-gray rounded-audiogami shadow-sm p-6 mb-6">
-          <div className="text-center">
-            {currentPass === 0 && (
-              <div>
-                <div className="mb-4">
-                  <div className="inline-block w-20 h-20 bg-gradient-to-br from-primary to-chunky-bee rounded-full flex items-center justify-center text-white text-3xl shadow-md">
-                    🎤
-                  </div>
+          {/* Right Column: Transcription + Detected Fields + Actions */}
+          <div className="space-y-4">
+            {/* Transcription */}
+            {transcript ? (
+              <div className="bg-off-white border border-light-gray rounded-audiogami shadow-sm p-4">
+                <h3 className="font-heading font-semibold text-charcoal mb-2 text-sm flex items-center gap-2">
+                  <span>📝</span>
+                  {t('transcription')}
+                </h3>
+                <div className="bg-white border border-light-gray rounded-audiogami p-3 font-body text-slate text-sm leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto">
+                  {transcript}
+                  {isTyping && <span className="animate-pulse text-primary">▊</span>}
                 </div>
+              </div>
+            ) : (
+              <div className="bg-off-white border border-light-gray rounded-audiogami shadow-sm p-4 text-center">
+                <p className="font-body text-slate text-sm">{t('recording')}</p>
+              </div>
+            )}
+
+            {/* Detected Answers */}
+            {Object.keys(detectedFields).length > 0 && (
+              <div className="bg-off-white border border-light-gray rounded-audiogami shadow-sm p-4">
+                <h3 className="font-heading font-semibold text-rockman-blue mb-2 text-sm flex items-center gap-2">
+                  <span>✓</span>
+                  {t('answersDetected')}
+                </h3>
+                <div className="grid gap-2">
+                  {Object.entries(detectedFields).map(([key, value]) => {
+                    if (key === 'tags' && Array.isArray(value)) {
+                      return (
+                        <div key={key} className="bg-white border border-rockman-blue rounded-audiogami p-2 animate-fade-in">
+                          <div className="text-xs font-body font-semibold text-rockman-blue mb-1">
+                            {t(key)}
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {value.map(tag => (
+                              <span key={tag} className="bg-rockman-blue text-white px-2 py-0.5 rounded text-xs font-body">
+                                {t(tag)}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div key={key} className="bg-white border border-rockman-blue rounded-audiogami p-2 animate-fade-in">
+                        <div className="text-xs font-body font-semibold text-rockman-blue mb-1">
+                          {t(key)}
+                        </div>
+                        <div className="font-body text-slate text-xs">
+                          {typeof value === 'string' ? (t(value) || value) : JSON.stringify(value)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Test Pass 1 Button */}
+            {currentPass === 0 && (
+              <div className="text-center">
                 <button
                   onClick={startPass1}
-                  className="bg-primary hover:bg-chunky-bee text-white px-8 py-3 rounded-audiogami font-body font-semibold text-lg transition-colors shadow-sm"
+                  className="bg-primary hover:bg-chunky-bee text-white px-8 py-3 rounded-audiogami font-body font-semibold transition-colors shadow-sm w-full"
                 >
                   {t('testPass1')}
                 </button>
               </div>
             )}
 
+            {/* Missing Fields + Test Pass 2 */}
             {currentPass === 1 && !isTyping && missingFields.length > 0 && (
-              <div>
-                <div className="mb-4 p-4 bg-off-white border-2 border-chunky-bee rounded-audiogami">
-                  <p className="text-charcoal font-body font-semibold mb-2">
-                    {pass2Prompt}
-                  </p>
+              <>
+                {/* Missing Fields */}
+                <div className="bg-off-white border border-light-gray rounded-audiogami shadow-sm p-4">
+                  <h3 className="font-heading font-semibold text-primary mb-2 text-sm flex items-center gap-2">
+                    <span>❓</span>
+                    {t('questionsRemaining')}
+                  </h3>
+                  {pass2Prompt && (
+                    <p className="text-charcoal font-body text-xs mb-2">
+                      {pass2Prompt}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-1">
+                    {missingFields.map(field => (
+                      <span key={field} className="bg-chunky-bee text-charcoal px-2 py-1 rounded-audiogami text-xs font-body font-medium">
+                        {t(field)}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <button
-                  onClick={startPass2}
-                  className="bg-primary hover:bg-chunky-bee text-white px-8 py-3 rounded-audiogami font-body font-semibold text-lg transition-colors shadow-sm"
-                >
-                  {t('testPass2')}
-                </button>
-              </div>
+
+                {/* Test Pass 2 Button */}
+                <div className="text-center">
+                  <button
+                    onClick={startPass2}
+                    className="bg-primary hover:bg-chunky-bee text-white px-8 py-3 rounded-audiogami font-body font-semibold transition-colors shadow-sm w-full"
+                  >
+                    {t('testPass2')}
+                  </button>
+                </div>
+              </>
             )}
 
+            {/* Recording Indicator */}
             {isTyping && (
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-16 h-16 bg-gradient-to-br from-primary to-chunky-bee rounded-full flex items-center justify-center text-white text-2xl shadow-md animate-pulse">
-                  🎤
+              <div className="bg-off-white border border-light-gray rounded-audiogami shadow-sm p-4">
+                <div className="flex items-center justify-center gap-3">
+                  <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+                  <span className="text-charcoal font-body font-semibold text-sm">{t('recording')}</span>
                 </div>
-                <span className="text-charcoal font-body font-semibold">{t('recording')}</span>
               </div>
             )}
           </div>
         </div>
-
-        {/* Transcription */}
-        {transcript && (
-          <div className="bg-off-white border border-light-gray rounded-audiogami shadow-sm p-6 mb-6">
-            <h3 className="font-heading font-semibold text-charcoal mb-3 flex items-center gap-2">
-              <span>📝</span>
-              {t('transcription')}
-            </h3>
-            <div className="bg-white border border-light-gray rounded-audiogami p-4 font-body text-slate leading-relaxed whitespace-pre-wrap">
-              {transcript}
-              {isTyping && <span className="animate-pulse text-primary">▊</span>}
-            </div>
-          </div>
-        )}
-
-        {/* Detected Answers */}
-        {Object.keys(detectedFields).length > 0 && (
-          <div className="bg-off-white border border-light-gray rounded-audiogami shadow-sm p-6 mb-6">
-            <h3 className="font-heading font-semibold text-rockman-blue mb-4 flex items-center gap-2">
-              <span>✓</span>
-              {t('answersDetected')}
-            </h3>
-            <div className="grid gap-3">
-              {Object.entries(detectedFields).map(([key, value]) => {
-                if (key === 'tags' && Array.isArray(value)) {
-                  return (
-                    <div key={key} className="bg-white border border-rockman-blue rounded-audiogami p-3 animate-fade-in">
-                      <div className="text-sm font-body font-semibold text-rockman-blue mb-1">
-                        {t(key)}
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {value.map(tag => (
-                          <span key={tag} className="bg-rockman-blue text-white px-2 py-1 rounded text-sm font-body">
-                            {t(tag)}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                }
-
-                return (
-                  <div key={key} className="bg-white border border-rockman-blue rounded-audiogami p-3 animate-fade-in">
-                    <div className="text-sm font-body font-semibold text-rockman-blue mb-1">
-                      {t(key)}
-                    </div>
-                    <div className="font-body text-slate">
-                      {typeof value === 'string' ? (t(value) || value) : JSON.stringify(value)}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Missing Fields */}
-        {missingFields.length > 0 && currentPass === 1 && (
-          <div className="bg-off-white border border-light-gray rounded-audiogami shadow-sm p-6">
-            <h3 className="font-heading font-semibold text-primary mb-4 flex items-center gap-2">
-              <span>❓</span>
-              {t('questionsRemaining')}
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {missingFields.map(field => (
-                <span key={field} className="bg-chunky-bee text-charcoal px-3 py-1 rounded-audiogami text-sm font-body font-medium">
-                  {t(field)}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
