@@ -65,7 +65,7 @@ This application demonstrates the core value proposition of Audiogami: convertin
 
 ### Technical Features
 
-- 💾 LocalStorage persistence (no backend required)
+- 💾 Dual-mode persistence (Supabase database + localStorage fallback)
 - 🔄 Real-time form validation
 - 📤 CSV export for ticket data
 - 🎯 Modular component architecture
@@ -149,6 +149,10 @@ cd voice-support-claude
 
 # Install dependencies
 npm install
+
+# Configure environment (optional - app works with localStorage by default)
+cp .env.example .env.local
+# Edit .env.local with your Supabase credentials (see Database Setup below)
 ```
 
 ### Development Server
@@ -173,6 +177,85 @@ npm run preview
 ```
 
 Build output will be in the `dist/` directory.
+
+### Database Setup (Optional)
+
+The app works out of the box using **localStorage** for data persistence. For production deployments with persistent database storage, you can configure **Supabase**.
+
+#### Why Use Supabase?
+
+- ✅ Persistent data across sessions and devices
+- ✅ Real-time updates and collaboration
+- ✅ Built-in authentication and authorization
+- ✅ Automatic backups and scaling
+- ✅ SQL database with full query capabilities
+
+#### Step 1: Create a Supabase Account
+
+1. Go to [https://supabase.com](https://supabase.com)
+2. Sign up for a free account
+3. Create a new project
+
+#### Step 2: Get Your Credentials
+
+1. In your Supabase project dashboard, go to **Settings** → **API**
+2. Copy the following values:
+   - **Project URL** (looks like `https://xxxxx.supabase.co`)
+   - **Anon/Public Key** (starts with `eyJ...`)
+
+#### Step 3: Configure Environment Variables
+
+1. Copy the environment template:
+   ```bash
+   cp .env.example .env.local
+   ```
+
+2. Edit `.env.local` and add your credentials:
+   ```env
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key-here
+   ```
+
+3. **IMPORTANT**: Never commit `.env.local` to git! It's already in `.gitignore`.
+
+#### Step 4: Run Database Schema
+
+1. In your Supabase dashboard, go to **SQL Editor**
+2. Click **New Query**
+3. Copy the contents of `supabase/schema.sql` from this project
+4. Paste into the SQL editor and click **Run**
+
+This will create:
+- `tickets` table with all required fields
+- Indexes for better query performance
+- Auto-updating `updated_at` trigger
+- Row Level Security (RLS) policies
+- Sample seed data (optional)
+
+#### Step 5: Verify Configuration
+
+1. Restart your development server:
+   ```bash
+   npm run dev
+   ```
+
+2. Check the browser console - you should see:
+   ```
+   ✅ Supabase configured - using database storage
+   ```
+
+3. Create a test ticket and verify it appears in Supabase:
+   - Go to **Table Editor** → **tickets** in Supabase dashboard
+   - You should see your newly created ticket
+
+#### Fallback to localStorage
+
+If Supabase credentials are not configured or invalid, the app automatically falls back to localStorage. You'll see this message in the console:
+```
+ℹ️ Supabase not configured - using localStorage
+```
+
+No code changes required - the storage layer handles this transparently!
 
 ---
 
@@ -202,12 +285,18 @@ voice-support-claude/
 │   ├── hooks/                # Custom React hooks
 │   │   └── useLanguage.jsx   # Language context provider & switcher
 │   │
+│   ├── lib/                  # External service integrations
+│   │   └── supabase.js       # Supabase client configuration
+│   │
 │   ├── utils/                # Utility functions
-│   │   └── storage.js        # LocalStorage CRUD + seed data generator
+│   │   └── storage.js        # Dual-mode storage (Supabase + localStorage)
 │   │
 │   ├── App.jsx               # Root component with routing
 │   ├── main.jsx              # React 19 entry point
 │   └── index.css             # Global styles, Tailwind directives, animations
+│
+├── supabase/                 # Database configuration
+│   └── schema.sql            # PostgreSQL schema for tickets table
 │
 ├── public/                   # Static assets
 │   └── vite.svg
@@ -224,6 +313,8 @@ voice-support-claude/
 ├── tailwind.config.js        # Tailwind CSS configuration
 ├── postcss.config.js         # PostCSS plugins (Tailwind + Autoprefixer)
 ├── eslint.config.js          # ESLint linting rules
+├── .env.example              # Environment variables template
+├── .env.local                # Local environment (not in git)
 ├── .gitignore                # Git ignore patterns
 └── index.html                # HTML entry point
 ```
@@ -297,14 +388,16 @@ graph LR
 ### State Management
 - React Context API for language preferences
 - React useState/useEffect for component state
-- LocalStorage for persistent data
+- Dual-mode storage (Supabase + localStorage fallback)
+
+### Database & Backend
+- **Supabase Client 2.48.1** - PostgreSQL database with real-time capabilities
+- Automatic fallback to localStorage when Supabase not configured
+- Row Level Security (RLS) for data protection
 
 ### Development Tools
 - **ESLint 9.17.0** - Code quality and consistency
 - **Vite Plugin React 4.3.4** - Fast Refresh support
-
-### Future Backend (Prepared)
-- **Supabase Client 2.48.1** - Ready for Phase 2 integration
 
 ---
 
@@ -404,12 +497,22 @@ npm run lint
 
 ### Environment Variables
 
-Currently no environment variables required. For Phase 2 with Supabase:
+The app works out of the box with localStorage (no configuration needed). To enable Supabase database storage:
 
-```env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
+1. Copy the template:
+   ```bash
+   cp .env.example .env.local
+   ```
+
+2. Add your Supabase credentials to `.env.local`:
+   ```env
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key-here
+   ```
+
+3. See the [Database Setup](#database-setup-optional) section for detailed instructions.
+
+**Note**: The app automatically detects Supabase configuration and falls back to localStorage if not configured.
 
 ### Adding New Use Cases
 
@@ -455,14 +558,47 @@ npm run build
 # Configure GitHub Pages to serve from 'dist' directory
 ```
 
-### Environment Configuration
+### Environment Configuration for Production
 
-The app works out of the box with no backend. For production with Supabase:
+#### Vercel Deployment with Supabase
 
-1. Create Supabase project
-2. Set environment variables
-3. Update `src/lib/supabase.js` (to be created in Phase 2)
-4. Migrate from localStorage to Supabase client
+1. **Deploy to Vercel**:
+   ```bash
+   npm install -g vercel
+   vercel
+   ```
+
+2. **Configure Environment Variables** in Vercel Dashboard:
+   - Go to your project settings → Environment Variables
+   - Add `VITE_SUPABASE_URL` with your Supabase project URL
+   - Add `VITE_SUPABASE_ANON_KEY` with your Supabase anon key
+   - Make sure to add them for **Production**, **Preview**, and **Development** environments
+
+3. **Redeploy**:
+   ```bash
+   vercel --prod
+   ```
+
+#### Netlify Deployment with Supabase
+
+1. **Build the project**:
+   ```bash
+   npm run build
+   ```
+
+2. **Configure Environment Variables** in Netlify:
+   - Go to Site settings → Environment variables
+   - Add `VITE_SUPABASE_URL`
+   - Add `VITE_SUPABASE_ANON_KEY`
+
+3. **Deploy** by dragging the `dist` folder to Netlify or connecting your Git repository
+
+#### Important Notes
+
+- The app will automatically use Supabase if environment variables are present
+- If not configured, it falls back to localStorage (works locally but data doesn't persist across devices)
+- Make sure your Supabase database schema is set up (see [Database Setup](#database-setup-optional))
+- Environment variables starting with `VITE_` are embedded in the build and exposed to the client
 
 ---
 
