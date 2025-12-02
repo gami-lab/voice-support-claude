@@ -1,7 +1,126 @@
-// LocalStorage utility for ticket management
-const STORAGE_KEY = 'audiogami_tickets';
+// Storage utility with Supabase + localStorage fallback
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-export const storage = {
+const STORAGE_KEY = 'audiogami_tickets';
+const USE_SUPABASE = isSupabaseConfigured();
+
+// ============================================
+// SUPABASE OPERATIONS
+// ============================================
+
+const supabaseStorage = {
+  // Get all tickets
+  getTickets: async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tickets')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching tickets from Supabase:', error);
+      return [];
+    }
+  },
+
+  // Get a single ticket by ID
+  getTicket: async (id) => {
+    try {
+      const { data, error } = await supabase
+        .from('tickets')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching ticket from Supabase:', error);
+      return null;
+    }
+  },
+
+  // Save a new ticket
+  saveTicket: async (ticket) => {
+    try {
+      const newTicket = {
+        ...ticket,
+        id: ticket.id || `ticket_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        created_at: ticket.created_at || new Date().toISOString(),
+      };
+
+      const { data, error } = await supabase
+        .from('tickets')
+        .insert([newTicket])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error saving ticket to Supabase:', error);
+      throw error;
+    }
+  },
+
+  // Update an existing ticket
+  updateTicket: async (id, updates) => {
+    try {
+      const { data, error } = await supabase
+        .from('tickets')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating ticket in Supabase:', error);
+      return null;
+    }
+  },
+
+  // Delete a ticket
+  deleteTicket: async (id) => {
+    try {
+      const { error } = await supabase
+        .from('tickets')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error deleting ticket from Supabase:', error);
+      return false;
+    }
+  },
+
+  // Clear all tickets (dangerous - use with caution)
+  clearTickets: async () => {
+    try {
+      const { error } = await supabase
+        .from('tickets')
+        .delete()
+        .neq('id', ''); // Delete all
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error clearing tickets from Supabase:', error);
+      return false;
+    }
+  },
+};
+
+// ============================================
+// LOCALSTORAGE OPERATIONS (FALLBACK)
+// ============================================
+
+const localStorageStorage = {
   // Get all tickets
   getTickets: () => {
     try {
@@ -15,13 +134,13 @@ export const storage = {
 
   // Get a single ticket by ID
   getTicket: (id) => {
-    const tickets = storage.getTickets();
+    const tickets = localStorageStorage.getTickets();
     return tickets.find(ticket => ticket.id === id);
   },
 
   // Save a new ticket
   saveTicket: (ticket) => {
-    const tickets = storage.getTickets();
+    const tickets = localStorageStorage.getTickets();
     const newTicket = {
       ...ticket,
       id: ticket.id || `ticket_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -34,7 +153,7 @@ export const storage = {
 
   // Update an existing ticket
   updateTicket: (id, updates) => {
-    const tickets = storage.getTickets();
+    const tickets = localStorageStorage.getTickets();
     const index = tickets.findIndex(ticket => ticket.id === id);
     if (index !== -1) {
       tickets[index] = { ...tickets[index], ...updates };
@@ -46,7 +165,7 @@ export const storage = {
 
   // Delete a ticket
   deleteTicket: (id) => {
-    const tickets = storage.getTickets();
+    const tickets = localStorageStorage.getTickets();
     const filtered = tickets.filter(ticket => ticket.id !== id);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
   },
@@ -62,12 +181,26 @@ export const storage = {
   },
 };
 
-// Generate seed tickets
+// ============================================
+// UNIFIED STORAGE INTERFACE
+// ============================================
+
+export const storage = USE_SUPABASE ? supabaseStorage : localStorageStorage;
+
+// Export storage type for debugging
+export const storageType = USE_SUPABASE ? 'supabase' : 'localStorage';
+
+console.log(`[Storage] Using ${storageType} for data persistence`);
+
+// ============================================
+// SEED DATA GENERATOR
+// ============================================
+
 export const generateSeedTickets = () => {
   return [
     {
       id: 'seed_1',
-      created_at: new Date(Date.now() - 3600000 * 24 * 2).toISOString(), // 2 days ago
+      created_at: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
       use_case: 'it_support',
       status: 'in_progress',
       priority: 'critical',
@@ -84,7 +217,7 @@ export const generateSeedTickets = () => {
     },
     {
       id: 'seed_2',
-      created_at: new Date(Date.now() - 3600000 * 24).toISOString(), // 1 day ago
+      created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
       use_case: 'it_support',
       status: 'resolved',
       priority: 'high',
@@ -101,7 +234,7 @@ export const generateSeedTickets = () => {
     },
     {
       id: 'seed_3',
-      created_at: new Date(Date.now() - 3600000 * 12).toISOString(), // 12 hours ago
+      created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
       use_case: 'ecommerce',
       status: 'new',
       priority: 'high',
@@ -119,7 +252,7 @@ export const generateSeedTickets = () => {
     },
     {
       id: 'seed_4',
-      created_at: new Date(Date.now() - 3600000 * 6).toISOString(), // 6 hours ago
+      created_at: new Date(Date.now() - 3600000 * 6).toISOString(),
       use_case: 'ecommerce',
       status: 'in_progress',
       priority: 'critical',
@@ -136,7 +269,7 @@ export const generateSeedTickets = () => {
     },
     {
       id: 'seed_5',
-      created_at: new Date(Date.now() - 3600000 * 3).toISOString(), // 3 hours ago
+      created_at: new Date(Date.now() - 3600000 * 3).toISOString(),
       use_case: 'saas',
       status: 'waiting_customer',
       priority: 'critical',
@@ -153,7 +286,7 @@ export const generateSeedTickets = () => {
     },
     {
       id: 'seed_6',
-      created_at: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+      created_at: new Date(Date.now() - 3600000).toISOString(),
       use_case: 'dev_portal',
       status: 'new',
       priority: 'critical',
@@ -169,3 +302,4 @@ export const generateSeedTickets = () => {
     },
   ];
 };
+
