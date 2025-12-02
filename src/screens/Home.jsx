@@ -1,15 +1,9 @@
-import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../hooks/useLanguage';
 import { useCaseConfig } from '../data/useCases';
 import { UseCases } from '../data/enums';
 
-const Home = () => {
-  const navigate = useNavigate();
+const Home = ({ onSelectUseCase, onGoToDashboard }) => {
   const { language, t } = useLanguage();
-
-  const handleSelectUseCase = (useCaseId) => {
-    navigate(`/recording/${useCaseId}`);
-  };
 
   const useCases = Object.values(UseCases);
 
@@ -58,7 +52,7 @@ const Home = () => {
               return (
                 <button
                   key={useCaseId}
-                  onClick={() => handleSelectUseCase(useCaseId)}
+                  onClick={() => onSelectUseCase(useCaseId)}
                   className="bg-off-white border-2 border-light-gray hover:border-rockman-blue hover:shadow-lg transition-all duration-300 rounded-audiogami p-8 text-left group"
                 >
                   <div className="flex items-start gap-4">
@@ -86,7 +80,7 @@ const Home = () => {
         {/* Dashboard Link */}
         <div className="text-center mt-12">
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={onGoToDashboard}
             className="text-rockman-blue hover:text-joust-blue font-body font-semibold underline transition-colors"
           >
             {t('viewAllTickets')}
