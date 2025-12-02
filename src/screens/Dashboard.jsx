@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../hooks/useLanguage';
 import { storage } from '../utils/storage';
 import { Status, Priority, UseCases } from '../data/enums';
 import { useCaseConfig } from '../data/useCases';
 
-const Dashboard = () => {
-  const navigate = useNavigate();
+const Dashboard = ({ onBack }) => {
   const { language, t } = useLanguage();
   const [tickets, setTickets] = useState([]);
   const [filteredTickets, setFilteredTickets] = useState([]);
@@ -131,7 +129,7 @@ const Dashboard = () => {
             <p className="font-body text-slate">{tickets.length} {t('allTickets')}</p>
           </div>
           <button
-            onClick={() => navigate('/')}
+            onClick={onBack}
             className="px-6 py-3 bg-primary hover:bg-chunky-bee text-white rounded-audiogami font-body font-semibold transition-colors shadow-sm"
           >
             + New Ticket

@@ -1,26 +1,19 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../hooks/useLanguage';
 import { useCaseConfig } from '../data/useCases';
 import { Status, Priority, Tags } from '../data/enums';
 
-const Validate = () => {
-  const { useCaseId } = useParams();
-  const navigate = useNavigate();
-  const location = useLocation();
+const Validate = ({ useCaseId, detectedFields, transcript, onValidate, onBack }) => {
   const { language, t } = useLanguage();
 
   const config = useCaseConfig[useCaseId];
-  const initialData = location.state?.detectedFields || {};
-  const transcript = location.state?.transcript || '';
-
-  const [formData, setFormData] = useState(initialData);
-  const [tags, setTags] = useState(initialData.tags || []);
+  const [formData, setFormData] = useState(detectedFields || {});
+  const [tags, setTags] = useState(detectedFields?.tags || []);
 
   useEffect(() => {
-    setFormData(initialData);
-    setTags(initialData.tags || []);
-  }, [initialData]);
+    setFormData(detectedFields || {});
+    setTags(detectedFields?.tags || []);
+  }, [detectedFields]);
 
   const handleFieldChange = (fieldName, value) => {
     setFormData(prev => ({ ...prev, [fieldName]: value }));
@@ -41,7 +34,7 @@ const Validate = () => {
     return requiredFields.every(field => formData[field.name]);
   };
 
-  const handleValidate = () => {
+  const handleValidateClick = () => {
     const ticketData = {
       ...formData,
       tags,
@@ -51,9 +44,7 @@ const Validate = () => {
       raw_transcript: transcript,
     };
 
-    navigate(`/confirmation/${useCaseId}`, {
-      state: { ticketData },
-    });
+    onValidate(ticketData);
   };
 
   const renderField = (field) => {
@@ -139,7 +130,7 @@ const Validate = () => {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Back Button */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={onBack}
           className="mb-6 text-rockman-blue hover:text-joust-blue flex items-center gap-2 font-body transition-colors"
         >
           ← Back
@@ -250,13 +241,13 @@ const Validate = () => {
         {/* Action Buttons */}
         <div className="flex gap-4 justify-end">
           <button
-            onClick={() => navigate(-1)}
+            onClick={onBack}
             className="px-6 py-3 rounded-audiogami font-body font-semibold bg-white border border-light-gray text-slate hover:border-rockman-blue transition-colors"
           >
             {t('completeWithVoice')}
           </button>
           <button
-            onClick={handleValidate}
+            onClick={handleValidateClick}
             disabled={!isFormComplete()}
             className={`px-8 py-3 rounded-audiogami font-body font-semibold text-white transition-colors shadow-sm ${
               isFormComplete()

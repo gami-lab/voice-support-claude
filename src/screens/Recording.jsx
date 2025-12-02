@@ -1,14 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../hooks/useLanguage';
 import { useCaseConfig } from '../data/useCases';
 import { transcriptions, transcriptionsEN } from '../data/transcriptions';
 
 const TYPEWRITER_DELAY = 40; // ms per character
 
-const Recording = () => {
-  const { useCaseId } = useParams();
-  const navigate = useNavigate();
+const Recording = ({ useCaseId, onComplete, onBack }) => {
   const { language, t } = useLanguage();
 
   const [currentPass, setCurrentPass] = useState(0); // 0 = not started, 1 = pass 1, 2 = pass 2
@@ -74,7 +71,7 @@ const Recording = () => {
     });
   };
 
-  const typewriterEffect = async (text, onUpdate, onProgress, onComplete) => {
+  const typewriterEffect = async (text, onUpdate, onProgress, onCompleteEffect) => {
     setIsTyping(true);
     let currentText = '';
 
@@ -91,7 +88,7 @@ const Recording = () => {
     }
 
     setIsTyping(false);
-    onComplete();
+    onCompleteEffect();
   };
 
   const startPass1 = () => {
@@ -177,18 +174,14 @@ const Recording = () => {
       () => {
         // After typewriter completes, update all fields
         setTimeout(() => {
-          setDetectedFields(prev => ({ ...prev, ...pass2Data.mapping }));
+          const finalFields = { ...detectedFields, ...pass2Data.mapping };
+          setDetectedFields(finalFields);
           setMissingFields([]);
           setProgress(100);
 
           // Auto-navigate to HITL screen after 1s
           setTimeout(() => {
-            navigate(`/validate/${useCaseId}`, {
-              state: {
-                detectedFields: { ...detectedFields, ...pass2Data.mapping },
-                transcript: fullTranscript,
-              },
-            });
+            onComplete(finalFields, fullTranscript);
           }, 1000);
         }, 500);
       }
@@ -208,7 +201,7 @@ const Recording = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate('/')}
+              onClick={onBack}
               className="text-rockman-blue hover:text-joust-blue flex items-center gap-2 font-body transition-colors"
             >
               ← Back

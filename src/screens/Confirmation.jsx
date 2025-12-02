@@ -1,18 +1,13 @@
 import { useState } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../hooks/useLanguage';
 import { useCaseConfig, agents } from '../data/useCases';
 import { storage } from '../utils/storage';
 import { Priority } from '../data/enums';
 
-const Confirmation = () => {
-  const { useCaseId } = useParams();
-  const navigate = useNavigate();
-  const location = useLocation();
+const Confirmation = ({ useCaseId, ticketData, onCreateAnother, onViewAllTickets, onBack }) => {
   const { language, t } = useLanguage();
 
   const config = useCaseConfig[useCaseId];
-  const ticketData = location.state?.ticketData || {};
 
   const [email, setEmail] = useState('');
   const [ticketId, setTicketId] = useState(null);
@@ -69,13 +64,13 @@ const Confirmation = () => {
 
             <div className="flex gap-4 justify-center mt-8">
               <button
-                onClick={() => navigate('/')}
+                onClick={onCreateAnother}
                 className="px-6 py-3 bg-primary hover:bg-chunky-bee text-white rounded-audiogami font-body font-semibold transition-colors shadow-sm"
               >
                 Create Another Ticket
               </button>
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={onViewAllTickets}
                 className="px-6 py-3 bg-white border border-light-gray hover:border-rockman-blue text-slate rounded-audiogami font-body font-semibold transition-colors"
               >
                 {t('viewAllTickets')}
@@ -92,7 +87,7 @@ const Confirmation = () => {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Back Button */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={onBack}
           className="mb-6 text-rockman-blue hover:text-joust-blue flex items-center gap-2 font-body transition-colors"
         >
           ← Back
