@@ -31,10 +31,15 @@
 
 This application demonstrates the core value proposition of Audiogami: converting unstructured voice input into structured, actionable support tickets. The demo simulates a two-pass voice processing system where:
 
-1. **Pass 1**: User describes their problem naturally - the system extracts key information
+1. **Pass 1**: User describes their problem naturally - the system extracts key information in real-time
 2. **Pass 2**: System asks targeted follow-up questions for missing details
 3. **HITL**: User validates and completes the extracted information
 4. **Confirmation**: Ticket is created and assigned to an appropriate agent
+
+**Key Features**:
+- **Real-time Question-Answer Alignment**: Answers appear inline with questions as they're detected
+- **True Single-Page Architecture**: No URL changes, state-machine based navigation
+- **Progressive Field Detection**: Visual feedback as information is extracted from transcription
 
 **Phase 1 Status**: This is a simulation using pre-recorded transcripts. No real SDK or voice processing is integrated yet.
 
@@ -47,6 +52,8 @@ This application demonstrates the core value proposition of Audiogami: convertin
 - ✅ **4 Industry Use Cases** - IT Support, E-commerce, SaaS, Developer Portal
 - ✅ **Bilingual Interface** - Full FR/EN support with instant switching
 - ✅ **Smart Field Extraction** - Progressive information capture across 2 passes
+- ✅ **Real-time Question-Answer Alignment** - Answers appear inline with questions as they're detected
+- ✅ **Dynamic Question Reordering** - Answered questions automatically rise to the top
 - ✅ **HITL Validation** - Editable forms with required/optional field grouping
 - ✅ **Auto-categorization** - Intelligent priority and category assignment
 - ✅ **Tag System** - Smart tagging (urgent, recurring, VIP, etc.)
@@ -59,9 +66,11 @@ This application demonstrates the core value proposition of Audiogami: convertin
 - 🎨 Modern, responsive design with Tailwind CSS
 - ⚡ Fast typewriter effect for realistic transcription simulation
 - 📊 Visual progress bars with color-coded states
-- 🎭 Smooth animations and transitions
+- 🎭 Smooth animations and transitions (fade-in for detected fields)
 - 📱 Mobile-first responsive layout
 - 🌐 Persistent language preference
+- 🔄 True single-page experience (URL stays at `/` throughout)
+- ✨ Progressive field detection with real-time visual feedback
 
 ### Technical Features
 
@@ -291,7 +300,7 @@ voice-support-claude/
 │   ├── utils/                # Utility functions
 │   │   └── storage.js        # Dual-mode storage (Supabase + localStorage)
 │   │
-│   ├── App.jsx               # Root component with routing
+│   ├── App.jsx               # Root component with state machine navigation
 │   ├── main.jsx              # React 19 entry point
 │   └── index.css             # Global styles, Tailwind directives, animations
 │
@@ -340,12 +349,14 @@ graph LR
 - Link to dashboard for viewing existing tickets
 
 #### 2. **Recording Screen** - Voice Simulation
-- Show use case questions
+- Show use case questions with inline answer display
 - **Test Pass 1**: Play first transcript with typewriter effect
-- Display detected fields in real-time
+- **Real-time field detection**: Answers appear progressively as transcript plays
+- **Dynamic reordering**: Answered questions move to top, unanswered stay at bottom
+- **Visual feedback**: Answered questions highlighted with blue border and checkmark
 - Highlight missing required fields
 - **Test Pass 2**: Play follow-up transcript
-- Complete remaining fields
+- Complete remaining fields with same real-time feedback
 - Auto-navigate to validation
 
 #### 3. **Validate Screen** - HITL Form
@@ -377,8 +388,8 @@ graph LR
 
 ### Frontend Framework
 - **React 19.0.0** - Component-based UI library with latest features
-- **React Router 7.1.1** - Client-side routing and navigation
 - **Vite 7.2.6** - Next-generation build tool with lightning-fast HMR
+- **State Machine Navigation** - Pure React state-based screen management (no router)
 
 ### Styling
 - **Tailwind CSS 4.0.0** - Utility-first CSS framework
@@ -617,7 +628,7 @@ This is a demonstration project for Audiogami. For questions or feedback:
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history and release notes.
 
-**Latest Version**: 1.0.0 (2025-12-01)
+**Latest Version**: 1.1.0 (2025-12-02)
 
 ---
 

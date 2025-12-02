@@ -5,6 +5,109 @@ All notable changes to the Audiogami Voice Support Demo App will be documented i
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-12-02
+
+### Added
+
+#### Real-time Question-Answer Alignment
+- **Question-to-Field Mapping**: Added `questionFieldMapping` to each use case configuration
+  - Maps each question to its associated field names (e.g., Question 1 → `device`, Question 2 → `symptoms`, `impact`)
+  - Enables intelligent grouping of detected answers with their corresponding questions
+
+- **Inline Answer Display**: Answers now appear directly beneath their questions
+  - Answered questions highlighted with blue border and checkmark
+  - Unanswered questions remain gray
+  - Clean, organized layout replacing separate questions/answers sections
+
+- **Progressive Real-time Detection**: Answers populate dynamically during transcription
+  - Field detection happens progressively as transcript text appears
+  - Visual feedback with smooth fade-in animations
+  - Users see information being extracted in real-time
+
+- **Dynamic Question Reordering**: Questions automatically reorder based on answer status
+  - Answered questions rise to the top
+  - Unanswered questions stay at the bottom
+  - Natural flow matches user's mental model
+
+### Changed
+
+#### True Single-Page Application Architecture
+- **Removed React Router**: Eliminated `react-router-dom` dependency (191 packages instead of 195)
+  - No more `BrowserRouter`, `Routes`, `Route`, `useNavigate`, `useParams`, or `useLocation`
+  - Simpler codebase with fewer abstractions
+
+- **State Machine Navigation**: Centralized navigation logic in `App.jsx`
+  - Screen state: `'home' | 'recording' | 'validate' | 'confirmation' | 'dashboard'`
+  - Session data managed in React state
+  - Direct prop passing instead of router state
+
+- **Component Refactoring**: All screens now use callbacks and props
+  - `Home`: `onSelectUseCase`, `onGoToDashboard`
+  - `Recording`: `useCaseId`, `onComplete`, `onBack`
+  - `Validate`: `useCaseId`, `detectedFields`, `transcript`, `onValidate`, `onBack`
+  - `Confirmation`: `useCaseId`, `ticketData`, `onCreateAnother`, `onViewAllTickets`, `onBack`
+  - `Dashboard`: `onBack`
+
+- **Single URL**: Application stays on `/` throughout entire user journey
+  - No URL changes during navigation
+  - No deep linking support (intentional for this demo)
+  - No browser history entries (F5 always returns to home)
+
+### Benefits
+
+#### User Experience
+- **Better Visual Hierarchy**: Questions and answers are visually paired, reducing cognitive load
+- **Real-time Feedback**: Users see AI working in real-time as answers populate
+- **Clear Progress**: Answered vs unanswered questions are immediately apparent
+- **Natural Flow**: Answered questions naturally rise to prominence
+
+#### Developer Experience
+- **Simpler Architecture**: State machine is easier to understand than router configuration
+- **Direct Data Flow**: Props and callbacks are more explicit than router state
+- **Fewer Dependencies**: 4 fewer packages to maintain and update
+- **Easier Debugging**: Navigation logic in one place instead of spread across routes
+
+#### Technical
+- **Reduced Bundle Size**: Smaller production build without router code
+- **No Route Conflicts**: No URL parsing or matching logic
+- **Embedded-Friendly**: Works better in iframes or as embedded widgets
+- **Stateful Navigation**: Easy to preserve state across navigation
+
+### Technical Details
+
+#### Files Modified
+- `src/App.jsx`: Added state machine for screen management
+- `src/screens/Home.jsx`: Accepts `onSelectUseCase`, `onGoToDashboard` callbacks
+- `src/screens/Recording.jsx`: Accepts `useCaseId`, `onComplete`, `onBack` props
+- `src/screens/Validate.jsx`: Accepts `useCaseId`, `detectedFields`, `transcript`, `onValidate`, `onBack`
+- `src/screens/Confirmation.jsx`: Accepts `useCaseId`, `ticketData`, `onCreateAnother`, `onViewAllTickets`, `onBack`
+- `src/screens/Dashboard.jsx`: Accepts `onBack` callback
+- `src/data/useCases.js`: Added `questionFieldMapping` to all use cases
+- `package.json`: Removed `react-router-dom` dependency
+
+#### Dependencies Removed
+- `react-router-dom`: ^7.1.1 (and its sub-dependencies)
+
+### Trade-offs
+
+#### What We Gained
+✅ Simpler architecture
+✅ Better question-answer UX
+✅ Real-time visual feedback
+✅ Fewer dependencies
+✅ Direct state management
+✅ Embedded-friendly
+
+#### What We Lost
+❌ Deep linking (can't share direct URLs to specific screens)
+❌ Browser back button (F5 always goes to home)
+❌ URL-based bookmarking
+❌ Analytics URL tracking
+
+**Note**: For a demo/prototype application, the trade-offs heavily favor the SPA approach.
+
+---
+
 ## [1.0.0] - 2025-12-01
 
 ### Added
