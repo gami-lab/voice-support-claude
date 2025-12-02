@@ -25,6 +25,12 @@ export const useCaseConfig = {
         'Since when and how often?',
       ],
     },
+    // Map question index to field names
+    questionFieldMapping: [
+      ['device'],
+      ['symptoms', 'impact'],
+      ['frequency', 'environment', 'actions_tried'],
+    ],
     fields: [
       { name: 'device', required: true, type: 'text' },
       { name: 'symptoms', required: true, type: 'text' },
@@ -72,6 +78,12 @@ export const useCaseConfig = {
         'Have you already contacted the carrier?',
       ],
     },
+    // Map question index to field names
+    questionFieldMapping: [
+      ['order_number', 'purchase_date'],
+      ['problem_type', 'product_description', 'desired_resolution'],
+      ['delivery_status', 'actions_tried'],
+    ],
     fields: [
       { name: 'order_number', required: true, type: 'text' },
       { name: 'problem_type', required: true, type: 'text' },
@@ -120,6 +132,12 @@ export const useCaseConfig = {
         'What is the impact on your work?',
       ],
     },
+    // Map question index to field names
+    questionFieldMapping: [
+      ['feature'],
+      ['symptoms', 'steps_to_reproduce', 'frequency'],
+      ['impact', 'environment'],
+    ],
     fields: [
       { name: 'feature', required: true, type: 'text' },
       { name: 'symptoms', required: true, type: 'text' },
@@ -167,6 +185,12 @@ export const useCaseConfig = {
         'What is the urgency for you?',
       ],
     },
+    // Map question index to field names
+    questionFieldMapping: [
+      ['request_type'],
+      ['description', 'context', 'expected_behavior', 'ideas_needs'],
+      ['urgency'],
+    ],
     fields: [
       { name: 'request_type', required: true, type: 'text' },
       { name: 'description', required: true, type: 'text' },
